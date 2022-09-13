@@ -20,9 +20,17 @@ spec:
           volumeMounts:
             - mountPath: /var/lib/mysql
               name: mariadb-data
-          env:
-            - name: MYSQL_ROOT_PASSWORD
-              value: mot-de-pass-root
+          envFrom:
+            - configMapRef: { name: mariadb }
+            - secretRef:    { name: mariadb }
+          startupProbe: &probe
+            exec:
+              command:
+                - "sh"
+                - "-c"
+                - "mysqladmin status -p$MYSQL_ROOT_PASSWORD"
+          livenessProbe:  *probe
+          readinessProbe: *probe    
   volumeClaimTemplates:
     - metadata:
         name: mariadb-data
